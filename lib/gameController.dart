@@ -5,11 +5,13 @@ class GameController extends GetxController{
   static GameController get to => Get.find();
   var game = Game().obs;
 
+  Map<String, int> userIDPlayerID = Map();
+
   var acts = [].obs;
 
   void resChange(){
     game.refresh();
-    setActs();
+    // setActs();
   }
 
   void initGame(){
@@ -17,7 +19,9 @@ class GameController extends GetxController{
     game.value.init();
   }
 
-  void setActs(){
-    acts.value = game.value.players[0].getAvailableActs();
+  void startGame(){
+    while(game.value.end == false){
+      game.value.players[game.value.turnIndex];
+    }
   }
 }

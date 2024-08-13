@@ -38,7 +38,7 @@ class _GamePageState extends State<GamePage> {
               Row(
                 children: [
                   Gate(),
-                  TurnCounter()
+                  // TurnCounter()
                 ],
               ),
               Hand()
@@ -56,17 +56,17 @@ class _GamePageState extends State<GamePage> {
     );
   }
 }
-
-class TurnCounter extends StatelessWidget {
-  const TurnCounter({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      child: Text(GameController.to.game.value.players[].),
-    );
-  }
-}
+//
+// class TurnCounter extends StatelessWidget {
+//   const TurnCounter({super.key});
+//
+//   @override
+//   Widget build(BuildContext context) {
+//     return Container(
+//       child: Text(GameController.to.game.value.players[].),
+//     );
+//   }
+// }
 
 
 class CharDeck extends StatelessWidget {
@@ -88,7 +88,7 @@ class CharCard extends StatelessWidget {
     required this.card
   });
 
-  sys.Card card;
+  sys.CharacterCard card;
 
   @override
   Widget build(BuildContext context) {
@@ -126,7 +126,7 @@ class MatCard extends StatelessWidget {
     required this.card
   });
 
-  sys.Card card;
+  sys.ResourceCard card;
 
   @override
   Widget build(BuildContext context) {
@@ -197,7 +197,7 @@ class Gate extends StatelessWidget {
   }
 }
 
-String characterExplain(sys.Card character){
+String characterExplain(sys.CharacterCard character){
   String result = "";
   
   for(int i = 0; i < character.character!.costs[0].mats.length; i++){

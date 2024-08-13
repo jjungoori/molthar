@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:molthar/actionButtons.dart';
 import 'package:molthar/gameController.dart';
 import 'package:molthar/gamePage.dart';
+import 'package:molthar/hostPage.dart';
 
 void main() {
   Get.put(GameController());
@@ -14,19 +15,19 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const GetMaterialApp(
-      home: GamePage(),
+    return GetMaterialApp(
+      home: ClientPage(),
     );
   }
 }
-
-class MyHomePage extends StatelessWidget {
-  const MyHomePage({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: TurnButtons(),
-    );
-  }
-}
+//
+// class MyHomePage extends StatelessWidget {
+//   const MyHomePage({super.key});
+//
+//   @override
+//   Widget build(BuildContext context) {
+//     return Scaffold(
+//       body: TurnButtons(),
+//     );
+//   }
+// }
