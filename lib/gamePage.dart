@@ -1,6 +1,10 @@
+// import 'dart:html';
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:molthar/client.dart';
 import 'package:molthar/gameController.dart';
+import 'package:molthar/hostPage.dart';
 // import 'sysClasses.dart';
 import 'sysClasses.dart' as sys;
 import 'costDef.dart';
@@ -9,10 +13,12 @@ class GamePage extends StatefulWidget {
   GamePage({
     super.key,
 
-    this.me = 0
+    // this.me = 0,
+    // required this.controller
   });
 
-  int me = 0;
+  // int me = 0;
+  // ClientController controller;
 
   @override
   State<GamePage> createState() => _GamePageState();
@@ -24,35 +30,49 @@ class _GamePageState extends State<GamePage> {
   void initState(){
     super.initState();
 
-    GameController.to.initGame();
+    // GameController.to.initGame();
   }
 
   @override
   Widget build(BuildContext context) {
+
     return Scaffold(
-      body: Stack(
-        children: [
-          Column(
-            mainAxisAlignment: MainAxisAlignment.end,
+      body: Obx((){
+        if(ClientController.to.started.value == false){
+          return Text("no");
+        }
+        return SizedBox(
+          width: double.infinity,
+          // height: 650,
+          child: Stack(
             children: [
-              Row(
+              Column(
+                mainAxisAlignment: MainAxisAlignment.end,
                 children: [
-                  Gate(),
-                  // TurnCounter()
+                  Row(
+                    children: [
+                      Gate(),
+                      // TurnCounter()
+                    ],
+                  ),
+                  Hand()
                 ],
               ),
-              Hand()
+
+              Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    // ElevatedButton(onPressed: (){}, child: Text('end turn')),
+                    MatDeck(),
+                    CharDeck()
+                  ],
+                ),
+              )
             ],
           ),
-
-          Column(
-            children: [
-              MatDeck(),
-              CharDeck()
-            ],
-          )
-        ],
-      ),
+        );
+      }),
     );
   }
 }
@@ -74,32 +94,43 @@ class CharDeck extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      children: List.generate(GameController.to.game.value.characterDeck.field.length, (index){
-        return CharCard(card: GameController.to.game.value.characterDeck.field[index]);
+    return Obx(() => Row(
+      children: List.generate(ClientController.to.gameData.value.characterField.length, (index){
+        return FieldCharCard(index: index);
       }),
-    );
+    ));
   }
 }
 
-class CharCard extends StatelessWidget {
-  CharCard({
+class FieldCharCard extends StatelessWidget {
+  FieldCharCard({
     super.key,
-    required this.card
+    required this.index
   });
 
-  sys.CharacterCard card;
+  int index;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      height: 200,
-      width: 100,
-      decoration: BoxDecoration(
-          color: Colors.redAccent
-      ),
-      child: Text(
-        characterExplain(card!)
+    return GestureDetector(
+      onTap: (){
+        print("tap");
+        ClientController.to.sendToServer({
+          'act': 'GetCharacterFromField',
+          'parameters': {
+            'index': index
+          }
+        }, 'data_response');
+      },
+      child: Container(
+        height: 160,
+        width: 70,
+        decoration: BoxDecoration(
+            color: Colors.redAccent
+        ),
+        child: Text(
+          characterExplain(sys.Card.allCards[ClientController.to.gameData.value.characterField[index]]! as sys.CharacterCard)
+        ),
       ),
     );
   }
@@ -112,32 +143,105 @@ class MatDeck extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      children: List.generate(GameController.to.game.value.matDeck.field.length, (index){
-        return MatCard(card: GameController.to.game.value.matDeck.field[index]);
-      }),
+    return Obx((){
+      print(ClientController.to.gameData.value.matField.length);
+      return Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: <Widget>[GestureDetector(
+          onTap: (){
+            print("tap");
+            ClientController.to.sendToServer({
+              'act': 'GetMatFromDeck',
+              'parameters': {}
+            }, 'data_response');
+          },
+          child: Container(
+            height: 160,
+            width: 70,
+            decoration: BoxDecoration(
+                color: Colors.greenAccent
+            ),
+            child: Text("deck"),
+          ),
+        )]
+            + List.generate(ClientController.to.gameData.value.matField.length, (index){
+          return FieldMatCard(index: index);
+        }),
+      );
+    });
+  }
+}
+
+class FieldMatCard extends StatelessWidget {
+  FieldMatCard({
+    super.key,
+    required this.index
+  });
+
+  int index;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: (){
+        print("tap");
+        ClientController.to.sendToServer({
+          'act': 'GetMatFromField',
+          'parameters': {
+            'index': index
+          }
+        }, 'data_response');
+        ClientController.to.selectedMaterials.clear();
+        ClientController.to.selectedCrystals.value = 0;
+      },
+      child: Container(
+        height: 160,
+        width: 70,
+        decoration: BoxDecoration(
+          color: Colors.greenAccent
+        ),
+        child: Text(ClientController.to.gameData.value.matField[index].toString()),
+      ),
     );
   }
 }
 
-class MatCard extends StatelessWidget {
-  MatCard({
+class HandMatCard extends StatelessWidget {
+  HandMatCard({
     super.key,
-    required this.card
+    required this.index
   });
 
-  sys.ResourceCard card;
+  int index;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      height: 200,
-      width: 100,
-      decoration: BoxDecoration(
-        color: Colors.greenAccent
+    return Obx(() => GestureDetector(
+      onTap: (){
+        print("tap");
+        if(ClientController.to.selectedMaterials.value.contains(index)){
+          ClientController.to.selectedMaterials.value.remove(index);
+        }
+        else{
+          ClientController.to.selectedMaterials.value.add(index);
+        }
+        ClientController.to.selectedMaterials.refresh();
+        // ClientController.to.sendToServer({
+        //   'act': 'GetMatFromField',
+        //   'parameters': {
+        //     'index': index
+        //   }
+        // }, 'data_response');
+      },
+      child: Container(
+        height: 200,
+        width: 100,
+        decoration: BoxDecoration(
+            color: ClientController.to.selectedMaterials.value.contains(index) ? Colors.greenAccent : Colors.orange
+        ),
+        child: Text(ClientController.to.secretGameData.value.hand[index].toString()),
       ),
-      child: Text(card.mat.toString()),
-    );
+    ));
   }
 }
 
@@ -148,16 +252,16 @@ class Hand extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return Obx(() => Container(
       width: double.infinity,
-      height: 260,
+      height: 100,
       decoration: BoxDecoration(
-        color: Colors.grey
+          color: Colors.grey
       ),
       child: Row(
-        children: [],
+        children: [for(int i = 0; i < ClientController.to.secretGameData.value.hand.length; i++) HandMatCard(index: i)],
       ),
-    );
+    ));
   }
 }
 
@@ -167,33 +271,70 @@ class Gate extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return Obx(() => Container(
       width: 200,
       height: 120,
       decoration: BoxDecoration(
-        color: Colors.grey
+          color: Colors.grey
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Container(
-            height: 100,
-            width: 80,
-            decoration: BoxDecoration(
-              color: Colors.white
+          if(ClientController.to.gameData.value.players[ClientController.to.index].gate1 != null)
+            GestureDetector(
+              onTap: (){
+                print("tap");
+                ClientController.to.sendToServer({
+                  'act': 'Made',
+                  'parameters': {
+                    'index': 0,
+                    'crystal': ClientController.to.selectedCrystals.value,
+                    'materials': ClientController.to.selectedMaterials.value
+                  }
+                }, 'data_response');
+                ClientController.to.selectedMaterials.clear();
+                ClientController.to.selectedCrystals.value = 0;
+              },
+              child: Container(
+                height: 100,
+                width: 50,
+                decoration: BoxDecoration(
+                    color: Colors.redAccent
+                ),
+                child: Text(
+                    characterExplain(sys.Card.allCards[ClientController.to.gameData.value.players[ClientController.to.index].gate1]! as sys.CharacterCard)
+                ),
+              ),
             ),
-          ),
           SizedBox(width: 20,),
-          Container(
-            height: 100,
-            width: 80,
-            decoration: BoxDecoration(
-                color: Colors.white
+          if(ClientController.to.gameData.value.players[ClientController.to.index].gate2 != null)
+            GestureDetector(
+              onTap: (){
+                print("tap");
+                ClientController.to.sendToServer({
+                  'act': 'Made',
+                  'parameters': {
+                    'index': 1
+                  }
+                }, 'data_response');
+                ClientController.to.selectedMaterials.clear();
+                ClientController.to.selectedCrystals.value = 0;
+              },
+
+              child: Container(
+                height: 100,
+                width: 50,
+                decoration: BoxDecoration(
+                    color: Colors.redAccent
+                ),
+                child: Text(
+                    characterExplain(sys.Card.allCards[ClientController.to.gameData.value.players[ClientController.to.index].gate2]! as sys.CharacterCard)
+                ),
+              ),
             ),
-          )
         ],
       ),
-    );
+    ));
   }
 }
 

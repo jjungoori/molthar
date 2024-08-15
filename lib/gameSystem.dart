@@ -1,37 +1,142 @@
 import 'dart:async';
+import 'dart:convert';
 
+import 'package:molthar/gameServer.dart';
 import 'package:molthar/sysClasses.dart';
+
+class GameViewData {
+  final Game game;
+
+  GameViewData({required this.game});
+
+  Map<String, dynamic> secretJson(Player player){
+    Map<String, dynamic> playerSelfInfo(){
+      return {
+        'hand': player.hand.mats.map((e) => e.mat).toList(),
+        'activeActs': player.activeActs.map((e) => e.runtimeType.toString()).toList(),
+      };
+    }
+
+    return playerSelfInfo();
+  }
+
+  Map<String, dynamic> viewJson() {
+    Map<String, dynamic> playerViewInfo(Player player) {
+      return {
+        'crystal':player.crystal,
+        'remainTurn': player.remainTurn,
+        'handCount': player.hand.mats.length,
+        'gate1': player.gate.characters.length > 0 ? player.gate.characters[0].id : null,
+        'gate2': player.gate.characters.length > 1 ? player.gate.characters[0].id : null,
+        'openField': player.openField.characters.map((e) => e.id).toList(),
+        'score': player.score,
+      };
+    }
+
+
+    return {
+      'playerCount': game.players.length,
+      'players': game.players.map((e) => playerViewInfo(e)).toList(),
+      'matDeckCount': game.matDeck.cards.length,
+      'characterDeckCount': game.characterDeck.cards.length,
+      'matField': game.matDeck.field.map((e) => e.mat).toList(),
+      'characterField': game.characterDeck.field.map((e) => e.id).toList(),
+      // 'playerSelf': playerSelfInfo(),
+      'currentPlayerIndex': game.turnIndex,
+      'remainingTurn': game.players[game.turnIndex].remainTurn,
+    };
+  }
+}
 
 class GameSystem {
   final Game game;
-  int currentPlayerIndex = 0;
+  final GameServer server;
+  // int currentPlayerIndex = 0;
+  GameViewData gameViewData;
 
-  GameSystem(this.game);
+  GameSystem({
+    required this.game,
+    required this.server
+  }) : gameViewData = GameViewData(game: game) {
+    // server.startServer(8080);
+  }
+
+  void initPlayers(List<String> playerIds){
+    for(var playerId in playerIds){
+      game.players.add(Player(game: game, uid: playerId));
+    }
+  }
+
+  Future<Map<String, dynamic>> waitForPlayerInput(Player player) async {
+    var a = await server.requestAndWaitForResponse(player.uid, {'type': 'request_input'});
+    return a;
+  }
+  Future<void> sendToPlayer(Player player, Map<String, dynamic> data, String type) async {
+    await server.sendToPlayer(player.uid, data, type);
+  }
+
 
   Player getCurrentPlayer() {
-    return game.players[currentPlayerIndex];
+    return game.players[game.turnIndex];
+  }
+
+  Future<void> shareGameData() async {
+    var data = gameViewData.viewJson();
+    await Future.delayed(Duration(milliseconds: 100));
+
+    for(var player in game.players){
+      await sendToPlayer(player, data, 'game_view');
+    }
+    await Future.delayed(Duration(milliseconds: 100));
+    for(var player in game.players){
+      await sendToPlayer(player, gameViewData.secretJson(player), 'secret_view');
+      print('sendSecret  to ${player.uid}');
+    }
+  }
+
+  Future<void> playEachTurn() async {
+    var currentPlayer = getCurrentPlayer();
+    currentPlayer.remainTurn = currentPlayer.maxTurn;
+    for(; currentPlayer.remainTurn > 0;){
+      currentPlayer.setAvailableActs();
+      // for(var player in game.players){
+      //   await sendToPlayer(player, {'cards':Card.allCards}, 'card_data');
+      // }
+      // await Future.delayed(Duration(milliseconds: 100));
+
+      await shareGameData();
+
+      print("currentPlayer: ${currentPlayer.uid}");
+      await Future.delayed(Duration(milliseconds: 100));
+      Map<String, dynamic> input = await waitForPlayerInput(currentPlayer);
+      print("getinput");
+      handleInput(input, currentPlayer);
+
+      await shareGameData();
+
+      print('remainTurn: ${currentPlayer.remainTurn}');
+
+      // game.acts[input['act']].run(game, game.players[0], game.players[1]);
+    }
+  }
+
+  void handleInput(Map<String, dynamic> input, Player player){
+
+    print(input);
+    player.executeAct(game, null, input);
   }
 
   Future<void> startGame() async {
+    game.init();
+    for(var player in game.players){
+      sendToPlayer(player, {}, 'start_notify');
+    }
+
     while (true) {
       var currentPlayer = getCurrentPlayer();
-      // print('${currentPlayer.name}의 차례입니다.');
-      //
-      // // 서버에서 해당 플레이어에게 입력 요청
-      // var guessedNumber = await requestPlayerInput(currentPlayer);
-      //
-      // // 주사위를 굴리고 결과 확인
-      // int rolledNumber = game.rollDice();
-      // bool correct = game.checkGuess(guessedNumber);
-      //
-      // print('${currentPlayer.name}이 ${guessedNumber}를 선택했습니다. 주사위 결과: ${rolledNumber}');
-      //
-      // if (correct) {
-      //   print('${currentPlayer.name}이 맞췄습니다! 다시 시도하세요.');
-      // } else {
-      //   print('${currentPlayer.name}이 틀렸습니다. 다음 플레이어로 넘어갑니다.');
-      //   currentPlayerIndex = (currentPlayerIndex + 1) % game.players.length;
-      // }
+
+      await playEachTurn();
+
     }
   }
 

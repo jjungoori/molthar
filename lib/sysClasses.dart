@@ -1,10 +1,34 @@
+import 'dart:convert';
 import 'dart:math';
 
-import 'package:flutter/material.dart';
+// import 'package:flutter/material.dart';
+import 'package:molthar/acts.dart';
 import 'package:molthar/gamePage.dart';
 import 'costDef.dart';
 
 //히스토리 기록시, Act의 run이 History를 리턴하게
+abstract class Card {
+  static int idCounter = 0;
+  static Map<int, Card> allCards = {};
+  final int id;
+
+  // Constructor that assigns an ID based on the idCounter,
+  // increments it, and adds the card to the static list
+  Card() : id = idCounter++ {
+    allCards[id] = this;
+  }
+
+  // Prototype pattern: each card knows how to clone itself
+  Card clone();
+
+  // Position setting method. Implemented in ResourceCard
+  Card setPosition(int pos) => this;
+
+// Factory constructor
+// factory Card.createNew() {
+//   throw UnimplementedError('Subclasses should implement createNew');
+// }
+}
 
 class Game{
   Deck<ResourceCard> matDeck = Deck<ResourceCard>(fieldCount: 4);
@@ -41,18 +65,55 @@ class Game{
           costs: [
             Cost(mats: [1,1])
           ],
-          score: 1,
+          score: 2,
           act: AddToAlways(mat: 1)
         )
       ),
+      CharacterCard(
+          character: Character(
+              costs: [
+                Cost(mats: [1,1])
+              ],
+              score: 1,
+              act: AddToAlways(mat: 1)
+          )
+      ),
+      CharacterCard(
+          character: Character(
+              costs: [
+                Cost(mats: [1,1])
+              ],
+              score: 3,
+              act: AddToAlways(mat: 1)
+          )
+      ),
+      CharacterCard(
+          character: Character(
+              costs: [
+                Cost(mats: [1,1])
+              ],
+              score: 4,
+              act: AddToAlways(mat: 1)
+          )
+      ),
+      CharacterCard(
+          character: Character(
+              costs: [
+                Cost(mats: [1,1])
+              ],
+              score: 5,
+              act: AddToAlways(mat: 1)
+          )
+      ),
+
     ];
 
     characterDeck.cards.shuffle(Random());
     characterDeck.resetField();
 
-    for(int i = 0; i < 2; i++){
-      players.add(Player(game: this));
-    }
+    // for(int i = 0; i < 2; i++){
+    //   players.add(Player(game: this));
+    // }
   }
 
 // Field matField = Field();
@@ -77,91 +138,6 @@ class Turn{
 //Turn에서는 ㄹ
 //행위는 Act
 
-class ActResult{
-  bool success;
-  ActResult({
-    this.success = true
-  });
-}
-
-abstract class Act{
-  ActResult run(Game game, Player? player, Player? target);
-  String describe(Game game){
-    return toString();
-  }
-}
-
-class GetMatFromDeck extends Act{
-
-  @override
-  ActResult run(Game game, Player? player, Player? target){
-    player!.hand.addMat(game.matDeck.take());
-    player!.decreaseRemainTurn();
-    return ActResult();
-  }
-}
-
-class GetMatFromField extends Act{
-  int index;
-  GetMatFromField({
-    required this.index
-  });
-
-  @override
-  ActResult run(Game game, Player? player, Player? target){
-    ResourceCard mat = game.matDeck.takeAtField(index);
-    if(mat.resetCharacterField){
-      ResetCharacterField().run(game, player, target);
-    }
-    player!.hand.addMat(mat);
-    player!.decreaseRemainTurn();
-    return ActResult();
-  }
-
-  @override
-  String describe(Game game){
-    return "Get ${index}nd card(${(game.matDeck.field[index]).mat}) from field";
-  }
-}
-
-class GetCharacterFromField extends Act{
-  int index;
-  GetCharacterFromField({
-    required this.index
-  });
-
-  @override
-  ActResult run(Game game, Player? player, Player? target){
-    if(player!.gate.characters.length > 1){
-      return ActResult(success: false);
-    }
-    player!.gate.addCharacter(game.characterDeck.takeAtField(index));
-    player!.decreaseRemainTurn();
-    return ActResult();
-  }
-}
-
-class GetCharacterFromDeck extends Act{
-
-  @override
-  ActResult run(Game game, Player? player, Player? target){
-    if(player!.gate.characters.length > 1){
-      return ActResult(success: false);
-    }
-    player!.gate.addCharacter(game.characterDeck.take());
-    player!.decreaseRemainTurn();
-    return ActResult();
-  }
-}
-
-class ResetMatField extends Act{
-  @override
-  ActResult run(Game game, Player? player, Player? target){
-    game.matDeck.resetField();
-    player!.decreaseRemainTurn();
-    return ActResult();
-  }
-}
 
 // class SelectMaterial extends Act{
 //   SelectMaterial({
@@ -223,143 +199,7 @@ bool isMadeable(Player player, Character character) {
 
   return false;
 }
-class Made extends Act{
-  // List<Card> costs;
-  // int crystal;
-  int id;
-  Made({
-    // required this.costs,
-    // required this.crystal,
-    required this.id
-  });
-  @override
-  ActResult run(Game game, Player? player, Player? target){
-    var targetCharacter = player!.gate.findCharacter(id);
-    if(!isMadeable(player, (targetCharacter!.card as CharacterCard).character)){
-      print("not madeable");
-      return ActResult(success: false);
-    }
-    for(int i = 0; i < player!.hand.mats.length; i++){
-      if(player.selectedMaterialCard.contains(player.hand.mats[i].mat)){
-        player.hand.mats.removeAt(i);
-        i -= 1;
-      }
-    }
-    player!.selectedCrystals = 0;
-    player!.gate.characters.removeAt(targetCharacter.index);
-    player!.openField.characters.add(targetCharacter.card.clone() as CharacterCard);
-    if((targetCharacter.card as CharacterCard).character.act != null){
-      (targetCharacter.card as CharacterCard).character.act!.run(game, player, target);
-    }
-    player!.decreaseRemainTurn();
 
-    return ActResult();
-  }
-}
-
-class RestoreHand extends Act{
-  List<Card> mats;
-
-  RestoreHand({
-    required this.mats
-  });
-
-  @override
-  ActResult run(Game game, Player? player, Player? target) {
-    for (int i = 0; i < mats.length; i++) {
-      player!.hand.mats.remove(mats[i]);
-    }
-    for(int i = 0; i < mats.length; i++){
-      player!.hand.addMat(game.matDeck.take());
-    }
-    return ActResult();
-  }
-}
-
-class ResetCharacterField extends Act{
-  @override
-  ActResult run(Game game, Player? player, Player? target){
-    game.characterDeck.resetField();
-    return ActResult();
-  }
-}
-
-
-class UseCrystal extends Act{
-  @override
-  ActResult run(Game game, Player? player, Player? target){
-    if(player!.crystal>0){
-      player!.crystal -= 1;
-      player!.selectedCrystals += 1;
-    }
-    return ActResult();
-  }
-}
-
-class UnUseCrystal extends Act{
-  @override
-  ActResult run(Game game, Player? player, Player? target){
-    if(player!.selectedCrystals > 0){
-      player!.selectedCrystals -= 1;
-      player!.crystal += 1;
-    }
-    return ActResult();
-  }
-}
-//<<<<<<<<<<<<<<<<<<<<<<<
-class SeeOthersSelectMenu extends Act{
-  @override
-  ActResult run(Game game, Player? player, Player? target){
-    for(int i = 0; i < game.players.length; i++){
-      if(game.players[i] == player) {
-        continue;
-      }
-      player!.activeActs.add(SeeOthersSelect(index: i));
-    }
-    return ActResult();
-  }
-}
-
-class SeeOthersSelect extends Act{
-  int index;
-  SeeOthersSelect({
-    required this.index
-  });
-
-  @override
-  ActResult run(Game game, Player? player, Player? target){
-    for(int i = 0; i < game.players[index].hand.mats.length; i++){
-      SeeOthersSelectCard(index: index, index2: i);
-    }
-    return ActResult();
-  }
-}
-
-class SeeOthersSelectCard extends Act{
-  int index;
-  int index2;
-
-  SeeOthersSelectCard({
-    required this.index,
-    required this.index2
-  });
-
-  @override
-  ActResult run(Game game, Player? player, Player? target){
-    player!.hand.addMat(game.players[index].hand.mats.removeAt(index2));
-    return ActResult();
-  }
-
-}
-//>>>>>>>>>>>>>>>>>
-
-class SeeTopOfDeck extends Act{
-  @override
-  ActResult run(Game game, Player? player, Player? target){
-    print(game.characterDeck.cards[0]); //----------------------------------------
-    return ActResult();
-  }
-}
 
 //<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
@@ -398,122 +238,6 @@ class SeeTopOfDeck extends Act{
 //     return ActResult();
 //   }
 // }
-
-class ChangeCharacterGateToFieldFinal extends Act{
-  // int indexOfGate;
-  // int indexOfField;
-  //
-  // ChangeCharacterGateToFieldFinal({
-  //   // required this.indexOfGate,
-  //   // required this.indexOfField
-  // });
-
-  @override
-  ActResult run(Game game, Player? player, Player? target) {
-    var gateCard = player!.gate.findCharacter(player.selectedGateCard[0]);
-    var fieldCard = game.characterDeck.findCard(player.selectedGateCard[0]);
-    player.gate.characters[gateCard!.index] = fieldCard!.card.clone() as CharacterCard;
-    game.characterDeck.cards[fieldCard.index] = gateCard.card.clone() as CharacterCard;
-    return ActResult();
-  }
-}
-
-//>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-
-// <<<<<<<<<<<<<<<<<<
-// class KillOthers extends Act{
-//   ActResult run(Game game, Player? player, Player? target) {
-//     for(int i = 0; i < game.players.length; i++){
-//       for(int l = 0; l < game.players[i].gate.characters.length; l++){
-//         player!.activeActs.add(KillOthersSelect(gateIndex: l, playerIndex: i));
-//       }
-//     }
-//     return ActResult();
-//   }
-// }
-
-class KillOthersSelect extends Act {
-  // int playerIndex;
-  int id;
-  
-  KillOthersSelect({
-    // required this.playerIndex,
-    required this.id
-  });
-  
-  ActResult run(Game game, Player? player, Player? target) {
-    // game.characterDeck.used.add(game.players[playerIndex].gate.characters.removeAt(gateIndex));
-    for(int i = 0; i < game.players.length; i++){
-      var f = game.players[i].gate.findCharacter(id);
-      if(f != null){
-        game.players[i].gate.characters.removeAt(f.index);
-        game.characterDeck.used.add(f.card as CharacterCard);
-        return ActResult();
-      }
-    }
-    return ActResult();
-  }
-}
-// >>>>>>>>>>>
-
-// <<<<<<<<<<<<<<<<<
-// class GetOneFromUsed3 extends Act {
-//   ActResult run(Game game, Player? player, Player? target) {
-//     player!.activeActs.add(GetOneFromUsed3Select(index: 0));
-//     player!.activeActs.add(GetOneFromUsed3Select(index: 1));
-//     player!.activeActs.add(GetOneFromUsed3Select(index: 2));
-//     return ActResult();
-//   }
-// }
-
-class GetOneFromUsed3Select extends Act{
-  int id;
-  GetOneFromUsed3Select({
-    required this.id
-  });
-  ActResult run(Game game, Player? player, Player? target) {
-    // List<Card> used3 = [
-    //   game.characterDeck.used[game.characterDeck.used.length-1],
-    //   game.characterDeck.used[game.characterDeck.used.length-2],
-    //   game.characterDeck.used[game.characterDeck.used.length-3]
-    // ];
-    player!.hand.addMat(game.matDeck.used.removeAt(game.matDeck.findCardInUsed(id)!.index));
-    return ActResult();
-  }
-}
-//>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-
-class AddToAlways extends Act {
-  int mat;
-
-  AddToAlways({
-    required this.mat
-  });
-
-  ActResult run(Game game, Player? player, Player? target) {
-    player!.always.add(mat);
-    return ActResult();
-  }
-}
-abstract class Card {
-  static int idCounter = 0;
-  final int id;
-
-  // Constructor that assigns an ID based on the idCounter and increments it
-  Card() : id = idCounter++;
-
-  // Prototype pattern: each card knows how to clone itself
-  Card clone();
-
-  // Position setting method. Implemented in ResourceCard
-  Card setPosition(int pos) => this;
-
-
-// Factory constructor
-// factory Card.createNew() {
-//   throw UnimplementedError('Subclasses should implement createNew');
-// }
-}
 
 
 class ResourceCard extends Card {
@@ -637,16 +361,19 @@ class Player{
   OpenField openField = OpenField();
   Gate gate = Gate();//
   Game game;//
+  int score = 0;
 
   int remainTurn = 3;
+  int maxTurn = 3;
 
   // List<Card> selectedCards = [];
   int selectedCrystals = 0;
 
   // List<Mat>
 
-  List<Widget> autoActs = []; //-----------------------------------------------------------
+  // List<Widget> autoActs = []; //-----------------------------------------------------------
   List<Act> activeActs = [];
+  List<Act> specialActs = [];
 
   // int selectedGateIndex = 0;
   // int selectedFieldIndex = 0;
@@ -661,49 +388,63 @@ class Player{
 
   Player({
     required this.game,
+    required this.uid
   });
 
   // void SelectMatWithIndex(int index){
   //   hand.mats[index].selected = !hand.mats[index].selected;
   // }
 
+
+  ActResult executeAct(Game game, Player? target, Map<String, dynamic> jsonString) {
+    // JSON 데이터 파싱
+    var data = jsonString;
+    String actName = data['act'];
+    Map<String, dynamic> parameters = data['parameters'];
+
+    // 액트 이름으로 매칭되는 액트를 찾음
+    Act? actToExecute = activeActs.isNotEmpty ? activeActs.firstWhere((act) => act.runtimeType.toString() == actName) : null;
+
+    if (actToExecute != null) {
+      // 액트 실행
+      return actToExecute.run(game, this, target, parameters);
+    } else {
+      print("No such act found: $actName");
+      return ActResult(success: false);
+    }
+  }
+
+  void addAct(Act act){
+    specialActs.add(act);
+  }
+
   void decreaseRemainTurn(){
     remainTurn -= 1;
   }
 
-  //
-  // List<Act> getAvailableActs(){
-  //   if(remainTurn<1){
-  //     return [];
-  //   }
-  //   List<Act> acts = [];
-  //   acts.add(GetMatFromDeck());
-  //   for(int i = 0; i < 4; i++){
-  //     acts.add(GetMatFromField(index: i));
-  //   }
-  //   if(gate.characters.length < 2){
-  //     acts.add(GetCharacterFromDeck());
-  //     for(int i = 0; i < 2; i++){
-  //       acts.add(GetCharacterFromField(index: i));
-  //     }
-  //   }
-  //   acts.add(ResetMatField());
-  //   // acts.add(Made(costs: costs, index: index))
-  //   //
-  //   // for(int i = 0; i < hand.mats.length; i++){
-  //   //   acts.add(SelectMaterial(index: i));
-  //   // }
-  //
-  //   for(int i = 0; i < gate.characters.length; i++){
-  //     acts.add(Made(id: i));
-  //   }
-  //
-  //   acts.add(UnUseCrystal());
-  //   acts.add(UseCrystal());
-  //
-  //   acts += activeActs;
-  //   return acts;
-  // }
+
+  List<Act> setAvailableActs(){
+    if(remainTurn<1){
+      return [];
+    }
+    List<Act> acts = [];
+    acts.add(GetMatFromDeck());
+    acts.add(GetMatFromField());
+    if(gate.characters.length < 2){
+      acts.add(GetCharacterFromDeck());
+      acts.add(GetCharacterFromField());
+    }
+    acts.add(ResetMatField());
+
+    for(int i = 0; i < gate.characters.length; i++){
+      acts.add(Made());
+    }
+
+    acts += specialActs;
+
+    activeActs = acts;
+    return acts;
+  }
 }
 
 class CardWithIndex{
