@@ -90,10 +90,9 @@ class GameSystem {
     // await Future.delayed(Duration(milliseconds: 100));
     for(var player in game.players){
       sendToPlayer(player, gameViewData.secretJson(player), 'secret_view');
-      print('sendSecret  to ${player.uid}');
+      // print('sendSecret  to ${player.uid}');
     }
 
-    server.shootMessages();
   }
 
   Future<void> playEachTurn() async {
@@ -109,14 +108,15 @@ class GameSystem {
       await shareGameData();
 
       print("currentPlayer: ${currentPlayer.uid}");
-      await Future.delayed(Duration(milliseconds: 100));
+      // await Future.delayed(Duration(milliseconds: 100));
       Map<String, dynamic> input = await waitForPlayerInput(currentPlayer);
-      print("getinput");
+      // print("getinput");
       handleInput(input, currentPlayer);
 
       await shareGameData();
+      server.shootMessages();
 
-      print('remainTurn: ${currentPlayer.remainTurn}');
+      // print('remainTurn: ${currentPlayer.remainTurn}');
 
       // game.acts[input['act']].run(game, game.players[0], game.players[1]);
     }

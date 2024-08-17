@@ -398,12 +398,12 @@ class Made extends Act {
     player!.selectedCrystals = parameters['crystal'];
     player.selectedMaterialCard = [for(int i = 0; i < parameters['materials'].length; i++) player.hand.mats[parameters['materials'].cast<int>()[i]].mat];
 
-    print("materialCard: ${player.selectedMaterialCard}");
+    // print("materialCard: ${player.selectedMaterialCard}");
 
     int index = parameters['index'];
     Card targetCharacter = player!.gate.characters[index];
     if (!isMadeable(player, (targetCharacter as CharacterCard).character)) {
-      print("not madeable");
+      // print("not madeable");
       return ActResult(success: false);
     }
     player.hand.mats.removeWhere((mat) => player.selectedMaterialCard.contains(mat.mat));
@@ -415,7 +415,7 @@ class Made extends Act {
       (targetCharacter as CharacterCard).character.act!.run(game, player, target, {});
     }
     player.decreaseRemainTurn();
-    print('made suc');
+    // print('made suc');
     return ActResult();
   }
 }
@@ -508,7 +508,7 @@ class SeeOthersSelectCard extends Act {
 class SeeTopOfDeck extends Act {
   @override
   ActResult run(Game game, Player? player, Player? target, Map<String, dynamic> parameters) {
-    print(game.characterDeck.cards[0]);
+    // print(game.characterDeck.cards[0]);
     return ActResult();
   }
 }

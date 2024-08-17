@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:molthar/gamePage.dart';
 import 'package:molthar/hostPage.dart';
+import 'package:molthar/utils.dart';
 
 class SecretGameData {
   final List<int> hand;
@@ -132,11 +133,25 @@ class ClientPage extends StatelessWidget {
   }
 }
 
+class GamePageData{
+  bool openFieldShowing = false;
+
+  void toggleOpenField(){
+    openFieldShowing = !openFieldShowing;
+  }
+
+  bool getOpenFieldShowing(){
+    return openFieldShowing;
+  }
+}
+
 
 class ClientController extends GetxController{
   static ClientController get to => Get.find();
 
-  String id = 'player1';
+  var gamePageData = GamePageData().obs;
+
+  String id = utils.CreateCryptoRandomString(8);
   int index = 0;
 
   var started = false.obs;
@@ -172,10 +187,14 @@ class ClientController extends GetxController{
     }));
   }
 
+  PlayerInfo getCurrentPlayerInfo(){
+    return gameData.value.players[index];
+  }
+
   Future<void> joinServer() async{
     // 호스트의 IP 주소와 포트 번호를 사용해 서버에 연결
     try {
-      final String host = '127.0.0.1'; // 예: '192.168.0.10'
+      final String host = '10.0.2.2'; // 예: '192.168.0.10'
       final int port = 8080;
 
       socket = await Socket.connect(host, port);
@@ -192,7 +211,7 @@ class ClientController extends GetxController{
       // 서버로부터의 메시지 수신 및 처리
       socket!.listen(
             (data) async {
-              print("received data");
+              // print("received data");
 
               String input = utf8.decode(data);
 
@@ -204,7 +223,7 @@ class ClientController extends GetxController{
                 parts[i + 1] = '{' + parts[i + 1];
               }
 
-              print(parts);
+              // print(parts);
 
               for(var m in parts){
                 final message = jsonDecode(m);
@@ -215,22 +234,22 @@ class ClientController extends GetxController{
                 }
                 if(type == 'set_index'){
                   index = message['data']['index'];
-                  print("received index");
+                  // print("received index");
                 }
                 if(type == 'card_data'){
                   cardData = message['data'];
                   // gameData.refresh();
-                  print("received card data");
+                  // print("received card data");
                 }
                 if(type == 'game_view'){
                   gameData.value = SharingGameData.fromJson(message);
                   gameData.refresh();
-                  print("received game view data");
+                  // print("received game view data");
                 }
                 if(type == 'secret_view'){
                   secretGameData.value = SecretGameData.fromJson(message);
                   secretGameData.refresh();
-                  print("received secret game view data");
+                  // print("received secret game view data");
                 }
                 //
                 // if (type == 'request_input') {

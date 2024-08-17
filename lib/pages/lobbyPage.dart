@@ -18,13 +18,13 @@ class LobbyPage extends StatelessWidget {
               },
               child: Text('게임 시작'),
             ),
-          ListView.builder(
+          Obx(() => ListView.builder(
             shrinkWrap: true,
             itemCount: GameServerController.to.server.connectedClients.keys.length,
             itemBuilder: (_, index){
               return Text(GameServerController.to.server.connectedClients.keys.toList()[index]);
             },
-          )
+          ))
         ],
       )
     );

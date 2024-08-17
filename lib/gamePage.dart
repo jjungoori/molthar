@@ -46,12 +46,17 @@ class _GamePageState extends State<GamePage> {
           // height: 650,
           child: Stack(
             children: [
+
               Column(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
                   Row(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Gate(),
+                      CrystalDisplay(),
+                      OpenFieldButton()
                       // TurnCounter()
                     ],
                   ),
@@ -69,7 +74,9 @@ class _GamePageState extends State<GamePage> {
                     CharDeck()
                   ],
                 ),
-              )
+              ),
+              if(ClientController.to.gamePageData.value.getOpenFieldShowing())
+                OpenFieldDisplay()
             ],
           ),
         );
@@ -88,6 +95,96 @@ class _GamePageState extends State<GamePage> {
 //     );
 //   }
 // }
+
+class OpenFieldDisplay extends StatelessWidget {
+  const OpenFieldDisplay({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Obx(() => Center(
+      child: Container(
+        height: 200,
+        width: 200,
+        decoration: BoxDecoration(
+            color: Colors.grey
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: List.generate(ClientController.to.getCurrentPlayerInfo().openField.length, (index){
+            return OpenFieldCharCard(id: ClientController.to.getCurrentPlayerInfo().openField[index]);
+          })
+        ),
+
+      ),
+    ));
+  }
+}
+
+
+class CrystalDisplay extends StatelessWidget {
+  const CrystalDisplay({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        GestureDetector(
+            onTap: (){
+              print("tap");
+              if(ClientController.to.selectedCrystals.value > 0)
+                ClientController.to.selectedCrystals.value--;
+            },
+            child: Container(
+              height: 100,
+              width: 100,
+              decoration: BoxDecoration(
+                  color: Colors.blueAccent
+              ),
+              child: Obx(() => Text(ClientController.to.selectedCrystals.toString())),
+            )
+        ),
+        GestureDetector(
+            onTap: (){
+              print("tap");
+              if(ClientController.to.selectedCrystals.value < ClientController.to.gameData.value.players[ClientController.to.index].crystal)
+                ClientController.to.selectedCrystals.value++;
+            },
+            child: Container(
+              height: 100,
+              width: 100,
+              decoration: BoxDecoration(
+                  color: Colors.blueAccent
+              ),
+              child: Obx(() => Text(ClientController.to.gameData.value.players[ClientController.to.index].crystal.toString())),
+            )
+        )
+      ],
+    );
+  }
+}
+
+
+class OpenFieldButton extends StatelessWidget {
+  const OpenFieldButton({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: (){
+        ClientController.to.gamePageData.value.toggleOpenField();
+        ClientController.to.gamePageData.refresh();
+      },
+      child: Container(
+        height: 100,
+        width: 100,
+        decoration: BoxDecoration(
+            color: Colors.blueAccent
+        ),
+        child: Text("open field"),
+      ),
+    );
+  }
+}
 
 
 class CharDeck extends StatelessWidget {
@@ -137,6 +234,35 @@ class FieldCharCard extends StatelessWidget {
   }
 }
 
+class OpenFieldCharCard extends StatelessWidget {
+  OpenFieldCharCard({
+    super.key,
+    required this.id
+  });
+
+  int id;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: (){
+
+      },
+      child: Container(
+        height: 160,
+        width: 70,
+        decoration: BoxDecoration(
+            color: Colors.redAccent
+        ),
+        child: Text(
+            characterExplain(sys.Card.allCards[id]! as sys.CharacterCard)
+        ),
+      ),
+    );
+  }
+}
+
+
 
 
 class MatDeck extends StatelessWidget {
@@ -145,7 +271,7 @@ class MatDeck extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Obx((){
-      print(ClientController.to.gameData.value.matField.length);
+      // print(ClientController.to.gameData.value.matField.length);
       return Column(
 
         crossAxisAlignment: CrossAxisAlignment.start,

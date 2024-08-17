@@ -4,6 +4,7 @@ import 'dart:io';
 import 'dart:convert';
 import 'dart:math';
 
+import 'package:get/get.dart';
 import 'package:molthar/gameSystem.dart';
 import 'package:molthar/sysClasses.dart';
 
@@ -11,6 +12,7 @@ import 'package:molthar/sysClasses.dart';
 class GameServer {
   ServerSocket? serverSocket;
   Map<String, Socket> connectedClients = {}; // 각 플레이어의 소켓을 관리
+  // Rx<Map<String, Socket>> connectedClients = Rx<Map<String, Socket>>({});
 
   Map<String, String> messages = {};
 
@@ -28,6 +30,7 @@ class GameServer {
   Future<Map<String, dynamic>> requestAndWaitForResponse(String playerId, Map<String, dynamic> data) async {
 
     sendToPlayer(playerId, data, 'data');
+    shootMessages();
 
     // 클라이언트의 응답을 기다림
     Completer<Map<String, dynamic>> completer = Completer<Map<String, dynamic>>();
@@ -94,7 +97,7 @@ class GameServer {
     final input = message['input'];
 
     // 예시로 입력을 처리
-    print('Received input from player $playerId: $input');
+    // print('Received input from player $playerId: $input');
     // 실제 게임 로직을 여기서 구현
   }
 
@@ -182,7 +185,7 @@ class GameServer {
         await socket.addStream(Stream.fromIterable([encodedMessage]));
         messages[playerId] = '';
       } catch (e) {
-        print('Error sending message to player $playerId: $e');
+        print('Error sending message to player $playerId: $e with ${messages[playerId]}');
         // 에러 처리: 연결 해제 또는 재연결 시도 등
       }
     }
