@@ -48,7 +48,7 @@ class GameServerController extends GetxController{
     final game = Game();
     final gameSystem = GameSystem(game: game, server: server);
 
-    gameSystem.initPlayers(server.connectedClients.keys.toList());
+    gameSystem.initPlayers(server.connectedClients.value.keys.toList());
 
     await gameSystem.startGame();
   }

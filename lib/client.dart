@@ -231,6 +231,9 @@ class ClientController extends GetxController{
                 final type = message['type'];
                 if(type == 'start_notify'){
                   ClientController.to.started.value = true;
+                  if(GameServerController.to.started == false){
+                    Get.toNamed('/game');
+                  }
                 }
                 if(type == 'set_index'){
                   index = message['data']['index'];

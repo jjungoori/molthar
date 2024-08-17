@@ -11,8 +11,8 @@ import 'package:molthar/sysClasses.dart';
 
 class GameServer {
   ServerSocket? serverSocket;
-  Map<String, Socket> connectedClients = {}; // 각 플레이어의 소켓을 관리
-  // Rx<Map<String, Socket>> connectedClients = Rx<Map<String, Socket>>({});
+  // Map<String, Socket> connectedClients = {}; // 각 플레이어의 소켓을 관리
+  Rx<Map<String, Socket>> connectedClients = Rx<Map<String, Socket>>({});
 
   Map<String, String> messages = {};
 
@@ -61,11 +61,12 @@ class GameServer {
 
               if (type == 'register') {
                 final playerId = message['player_id'];
-                connectedClients[playerId] = client;
+                connectedClients.value[playerId] = client;
                 sendToPlayer(playerId, {
-                  'index': connectedClients.length - 1,
+                  'index': connectedClients.value.length - 1,
                 }, 'set_index');
                 print('Player $playerId registered with server.');
+                connectedClients.refresh();
                 shootMessages();
               } else if (type == 'player_input') {
                 handlePlayerInput(message);
@@ -80,12 +81,12 @@ class GameServer {
             };
           },
       onDone: () {
-        final player = connectedClients.entries.firstWhere(
+        final player = connectedClients.value.entries.firstWhere(
               (entry) => entry.value == client,
           orElse: () => MapEntry('unknown', client),
         );
         print('Player ${player.key} disconnected: ${client.remoteAddress.address}');
-        connectedClients.remove(player.key);
+        connectedClients.value.remove(player.key);
         client.close();
       },
     );
@@ -174,7 +175,7 @@ class GameServer {
 
   Future<void> shootMessages() async {
     for(var playerId in messages.keys){
-      final socket = connectedClients[playerId];
+      final socket = connectedClients.value[playerId];
       if (socket == null) {
         print('Player $playerId not connected');
         return;

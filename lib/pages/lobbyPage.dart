@@ -20,9 +20,9 @@ class LobbyPage extends StatelessWidget {
             ),
           Obx(() => ListView.builder(
             shrinkWrap: true,
-            itemCount: GameServerController.to.server.connectedClients.keys.length,
+            itemCount: GameServerController.to.server.connectedClients.value.keys.length,
             itemBuilder: (_, index){
-              return Text(GameServerController.to.server.connectedClients.keys.toList()[index]);
+              return Text(GameServerController.to.server.connectedClients.value.keys.toList()[index]);
             },
           ))
         ],
