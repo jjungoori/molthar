@@ -43,7 +43,7 @@ class GameViewData {
       'characterField': game.characterDeck.field.map((e) => e.id).toList(),
       // 'playerSelf': playerSelfInfo(),
       'currentPlayerIndex': game.turnIndex,
-      'remainingTurn': game.players[game.turnIndex].remainTurn,
+      // 'remainingTurn': game.players[game.turnIndex].remainTurn,
     };
   }
 }
@@ -82,16 +82,18 @@ class GameSystem {
 
   Future<void> shareGameData() async {
     var data = gameViewData.viewJson();
-    await Future.delayed(Duration(milliseconds: 100));
+    // await Future.delayed(Duration(milliseconds: 100));
 
     for(var player in game.players){
-      await sendToPlayer(player, data, 'game_view');
+      sendToPlayer(player, data, 'game_view');
     }
-    await Future.delayed(Duration(milliseconds: 100));
+    // await Future.delayed(Duration(milliseconds: 100));
     for(var player in game.players){
-      await sendToPlayer(player, gameViewData.secretJson(player), 'secret_view');
+      sendToPlayer(player, gameViewData.secretJson(player), 'secret_view');
       print('sendSecret  to ${player.uid}');
     }
+
+    server.shootMessages();
   }
 
   Future<void> playEachTurn() async {
@@ -136,6 +138,7 @@ class GameSystem {
       var currentPlayer = getCurrentPlayer();
 
       await playEachTurn();
+      await shareGameData();
 
     }
   }

@@ -343,7 +343,7 @@ class GetMatFromField extends Act {
   @override
   ActResult run(Game game, Player? player, Player? target, Map<String, dynamic> parameters) {
     int index = parameters['index'];
-    ResourceCard mat = game.matDeck.takeAtField(index);
+    ResourceCard mat = game.matDeck.takeAtField(index, game);
     if (mat.resetCharacterField) {
       ResetCharacterField().run(game, player, target, {});
     }
@@ -360,7 +360,7 @@ class GetCharacterFromField extends Act {
     if (player!.gate.characters.length > 1) {
       return ActResult(success: false);
     }
-    player.gate.addCharacter(game.characterDeck.takeAtField(index));
+    player.gate.addCharacter(game.characterDeck.takeAtField(index, game));
     player.decreaseRemainTurn();
     return ActResult();
   }
@@ -381,7 +381,7 @@ class GetCharacterFromDeck extends Act {
 class ResetMatField extends Act {
   @override
   ActResult run(Game game, Player? player, Player? target, Map<String, dynamic> parameters) {
-    game.matDeck.resetField();
+    game.matDeck.resetField(game);
     player!.decreaseRemainTurn();
     return ActResult();
   }
@@ -437,7 +437,7 @@ class RestoreHand extends Act {
 class ResetCharacterField extends Act {
   @override
   ActResult run(Game game, Player? player, Player? target, Map<String, dynamic> parameters) {
-    game.characterDeck.resetField();
+    game.characterDeck.resetField(game);
     return ActResult();
   }
 }

@@ -63,6 +63,7 @@ class _GamePageState extends State<GamePage> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
+                    Text("turn: ${ClientController.to.gameData.value.players[ClientController.to.index].remainTurn}"),
                     // ElevatedButton(onPressed: (){}, child: Text('end turn')),
                     MatDeck(),
                     CharDeck()
@@ -145,28 +146,51 @@ class MatDeck extends StatelessWidget {
   Widget build(BuildContext context) {
     return Obx((){
       print(ClientController.to.gameData.value.matField.length);
-      return Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: <Widget>[GestureDetector(
-          onTap: (){
-            print("tap");
-            ClientController.to.sendToServer({
-              'act': 'GetMatFromDeck',
-              'parameters': {}
-            }, 'data_response');
-          },
-          child: Container(
-            height: 160,
-            width: 70,
-            decoration: BoxDecoration(
-                color: Colors.greenAccent
-            ),
-            child: Text("deck"),
+      return Column(
+
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: <Widget>[GestureDetector(
+              onTap: (){
+                print("tap");
+                ClientController.to.sendToServer({
+                  'act': 'GetMatFromDeck',
+                  'parameters': {}
+                }, 'data_response');
+              },
+              child: Container(
+                height: 160,
+                width: 70,
+                decoration: BoxDecoration(
+                    color: Colors.greenAccent
+                ),
+                child: Text("deck"),
+              ),
+            )]
+                + List.generate(ClientController.to.gameData.value.matField.length, (index){
+              return FieldMatCard(index: index);
+            }),
           ),
-        )]
-            + List.generate(ClientController.to.gameData.value.matField.length, (index){
-          return FieldMatCard(index: index);
-        }),
+          GestureDetector(
+            onTap:(){
+              print("tap");
+              ClientController.to.sendToServer({
+                'act': 'ResetMatField',
+                'parameters': {}
+              }, 'data_response');
+            },
+            child: Container(
+              height: 40,
+              width: 40,
+              decoration: BoxDecoration(
+                  color: Colors.greenAccent
+              ),
+              child: Text("r"),
+            ),
+          )
+        ],
       );
     });
   }

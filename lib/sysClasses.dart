@@ -50,7 +50,7 @@ class Game{
       }
     }
     matDeck.cards.shuffle(Random());
-    matDeck.resetField();
+    matDeck.resetField(this);
 
     // for(int i = 0; i < 10; i++){
     //   characterDeck.cards.add(Card(pos: 0, character: Character(
@@ -109,7 +109,7 @@ class Game{
     ];
 
     characterDeck.cards.shuffle(Random());
-    characterDeck.resetField();
+    characterDeck.resetField(this);
 
     // for(int i = 0; i < 2; i++){
     //   players.add(Player(game: this));
@@ -337,18 +337,29 @@ class Deck<T extends Card> {
     return cards.removeAt(0);
   }
 
-  T takeAtField(int index) {
+  T takeAtField(int index, Game game) {
     T takenCard = field[index].clone() as T;
     T newCard = take().setPosition(index) as T;
     field[index] = newCard;
+    if(newCard is ResourceCard){
+      if(newCard.resetCharacterField){
+        ResetCharacterField().run(game, null, null, {});
+      }
+    }
     return takenCard;
   }
 
-  void resetField() {
+  void resetField(Game game) {
     used.addAll(field);
     field.clear();
     for (int i = 0; i < fieldCount; i++) {
-      field.add(take().setPosition(i) as T);
+      var newCard = take().setPosition(i) as T;
+      field.add(newCard);
+      if(newCard is ResourceCard){
+        if(newCard.resetCharacterField){
+          ResetCharacterField().run(game, null, null, {});
+        }
+      }
     }
   }
 }
@@ -363,7 +374,7 @@ class Player{
   Game game;//
   int score = 0;
 
-  int remainTurn = 3;
+  int remainTurn = 0;
   int maxTurn = 3;
 
   // List<Card> selectedCards = [];

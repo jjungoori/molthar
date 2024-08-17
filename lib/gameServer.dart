@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:collection';
 import 'dart:io';
 import 'dart:convert';
 import 'dart:math';
@@ -11,6 +12,9 @@ class GameServer {
   ServerSocket? serverSocket;
   Map<String, Socket> connectedClients = {}; // 각 플레이어의 소켓을 관리
 
+  Map<String, String> messages = {};
+
+
   Future<void> startServer(int port) async {
     serverSocket = await ServerSocket.bind(InternetAddress.anyIPv4, port);
     print('Server running on port $port');
@@ -22,15 +26,8 @@ class GameServer {
   Map<String, Completer<Map<String, dynamic>>> pendingRequests = {}; // 플레이어 ID별로 응답을 기다리는 Completer 맵
 
   Future<Map<String, dynamic>> requestAndWaitForResponse(String playerId, Map<String, dynamic> data) async {
-    Socket client = connectedClients[playerId]!;
 
-    // 클라이언트에게 요청을 보냄
-    final requestMessage = {
-      'type': 'data',
-      'data': data
-    };
-
-    client.write(jsonEncode(requestMessage));
+    sendToPlayer(playerId, data, 'data');
 
     // 클라이언트의 응답을 기다림
     Completer<Map<String, dynamic>> completer = Completer<Map<String, dynamic>>();
@@ -46,27 +43,39 @@ class GameServer {
     // 클라이언트로부터 데이터를 받는 스트림 리스너
     client.listen(
           (data) {
-        final message = jsonDecode(utf8.decode(data));
-        final type = message['type'];
+            String input = utf8.decode(data);
 
-        if (type == 'register') {
-          final playerId = message['player_id'];
-          connectedClients[playerId] = client;
-          sendToPlayer(playerId, {
-            'index': connectedClients.length - 1,
-          }, 'set_index');
-          print('Player $playerId registered with server.');
-        } else if (type == 'player_input') {
-          handlePlayerInput(message);
-        } else if (type == 'data_response') {
-          // 클라이언트의 응답 처리
-          final playerId = message['player_id'];
-          if (pendingRequests.containsKey(playerId)) {
-            pendingRequests[playerId]!.complete(message['data']);
-            pendingRequests.remove(playerId); // 완료된 요청은 맵에서 제거
-          }
-        }
-      },
+            List<String> parts = input.split('}{');
+
+            // }{가 분리된 곳에 다시 붙여서 원래 형식으로 복원
+            for (int i = 0; i < parts.length - 1; i++) {
+              parts[i] = parts[i] + '}';
+              parts[i + 1] = '{' + parts[i + 1];
+            }
+            for(var m in parts){
+              final message = jsonDecode(m);
+              final type = message['type'];
+
+              if (type == 'register') {
+                final playerId = message['player_id'];
+                connectedClients[playerId] = client;
+                sendToPlayer(playerId, {
+                  'index': connectedClients.length - 1,
+                }, 'set_index');
+                print('Player $playerId registered with server.');
+                shootMessages();
+              } else if (type == 'player_input') {
+                handlePlayerInput(message);
+              } else if (type == 'data_response') {
+                // 클라이언트의 응답 처리
+                final playerId = message['player_id'];
+                if (pendingRequests.containsKey(playerId)) {
+                  pendingRequests[playerId]!.complete(message['data']);
+                  pendingRequests.remove(playerId); // 완료된 요청은 맵에서 제거
+                }
+              }
+            };
+          },
       onDone: () {
         final player = connectedClients.entries.firstWhere(
               (entry) => entry.value == client,
@@ -115,12 +124,8 @@ class GameServer {
 
   // 특정 플레이어에게 입력 요청을 보내는 함수
   void requestPlayerInput(String playerId) {
-    final requestMessage = {
-      'type': 'request_input',
-      'message': 'Your turn! Please enter a number between 1 and 6.'
-    };
 
-    connectedClients[playerId]?.write(jsonEncode(requestMessage));
+    sendToPlayer(playerId, {}, 'request_input');
   }
   //
   // Future<String> requestAndWaitForResponse(String playerId, Map<String, dynamic> data) async {
@@ -144,14 +149,64 @@ class GameServer {
   //   // 응답을 기다림
   //   return completer.future;
   // }
+  //
+  // Future<void> sendToPlayer(String playerId, Map<String, dynamic> data, String type) async{
+  //   final requestMessage = {
+  //     'type': type,
+  //     'data': data
+  //   };
+  //
+  //   connectedClients[playerId]?.write(jsonEncode(requestMessage));
+  //   await connectedClients[playerId]?.flush().then((value){return;});
+  // }
 
-  Future<void> sendToPlayer(String playerId, Map<String, dynamic> data, String type) async{
-    final requestMessage = {
+
+  Future<void> sendToPlayer(String playerId, Map<String, dynamic> data, String type) async {
+
+    messages[playerId] = (messages[playerId] ?? '') + jsonEncode({
       'type': type,
-      'data': data
-    };
-
-    connectedClients[playerId]?.write(jsonEncode(requestMessage));
-    await connectedClients[playerId]?.flush().then((value){return;});
+      'data': data,
+    });
   }
+
+  Future<void> shootMessages() async {
+    for(var playerId in messages.keys){
+      final socket = connectedClients[playerId];
+      if (socket == null) {
+        print('Player $playerId not connected');
+        return;
+      }
+
+      try {
+        final encodedMessage = utf8.encode(messages[playerId]!);
+        await socket.addStream(Stream.fromIterable([encodedMessage]));
+        messages[playerId] = '';
+      } catch (e) {
+        print('Error sending message to player $playerId: $e');
+        // 에러 처리: 연결 해제 또는 재연결 시도 등
+      }
+    }
+  }
+
+  // Future<void> sendToPlayer(String playerId, Map<String, dynamic> data, String type) async {
+  //   final socket = connectedClients[playerId];
+  //   if (socket == null) {
+  //     print('Player $playerId not connected');
+  //     return;
+  //   }
+  //
+  //   try {
+  //     Map<String, dynamic> message = {
+  //       'type': type,
+  //       'data': data,
+  //     };
+  //     print('Sending message to player $playerId: $message');
+  //     final encodedMessage = jsonEncode(message);
+  //     await socket.addStream(Stream.fromIterable([utf8.encode(encodedMessage)]));
+  //   } catch (e) {
+  //     print('Error sending message to player $playerId: $e');
+  //     // 에러 처리: 연결 해제 또는 재연결 시도 등
+  //   }
+  // }
 }
+

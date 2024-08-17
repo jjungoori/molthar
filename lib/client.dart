@@ -31,7 +31,7 @@ class SharingGameData {
   final List<int> matField;
   final List<int> characterField;
   final int currentPlayerIndex;
-  final int remainingTurn;
+  // final int remainingTurn;
 
   SharingGameData({
     required this.playerCount,
@@ -41,7 +41,7 @@ class SharingGameData {
     required this.matField,
     required this.characterField,
     required this.currentPlayerIndex,
-    required this.remainingTurn,
+    // required this.remainingTurn,
   });
 
   factory SharingGameData.fromJson(Map<String, dynamic> json) {
@@ -55,7 +55,7 @@ class SharingGameData {
       matField: List<int>.from(json['data']['matField'] as List),
       characterField: List<int>.from(json['data']['characterField'] as List),
       currentPlayerIndex: (json['data']['currentPlayerIndex'] as num).toInt(),
-      remainingTurn: (json['data']['remainingTurn'] as num).toInt(),
+      // remainingTurn: (json['data']['remainingTurn'] as num).toInt(),
     );
   }
 }
@@ -156,7 +156,7 @@ class ClientController extends GetxController{
     matField: [],
     characterField: [],
     currentPlayerIndex: 0,
-    remainingTurn: 0,
+    // remainingTurn: 0,
   ).obs;
 
   var secretGameData = SecretGameData(
@@ -193,48 +193,66 @@ class ClientController extends GetxController{
       socket!.listen(
             (data) async {
               print("received data");
-          final message = jsonDecode(utf8.decode(data));
-          final type = message['type'];
-          if(type == 'start_notify'){
-            ClientController.to.started.value = true;
-          }
-          if(type == 'set_index'){
-            index = message['data']['index'];
-            print("received index");
-          }
-          if(type == 'card_data'){
-            cardData = message['data'];
-            // gameData.refresh();
-            print("received card data");
-          }
-          if(type == 'game_view'){
-            gameData.value = SharingGameData.fromJson(message);
-            gameData.refresh();
-            print("received game view data");
-          }
-          if(type == 'secret_view'){
-            secretGameData.value = SecretGameData.fromJson(message);
-            secretGameData.refresh();
-            print("received secret game view data");
-          }
-          //
-          // if (type == 'request_input') {
-          //   print('Server: ${message['message']}');
-          //
-          //   // 플레이어의 입력을 받음 (콘솔에서 입력받는 예시)
-          //   print('Enter your guess (1-6):');
-          //   int guessedNumber = int.parse(stdin.readLineSync()!);
-          //
-          //   // 입력을 서버에 전송
-          //   final playerInput = {
-          //     'type': 'player_input',
-          //     'player_id': 'player1',
-          //     'guess': guessedNumber
-          //   };
-          //   socket.write(jsonEncode(playerInput));
-          // } else if (type == 'game_result') {
-          //   print('Server: ${message['message']}');
-          // }
+
+              String input = utf8.decode(data);
+
+              List<String> parts = input.split('}{');
+
+              // }{가 분리된 곳에 다시 붙여서 원래 형식으로 복원
+              for (int i = 0; i < parts.length - 1; i++) {
+                parts[i] = parts[i] + '}';
+                parts[i + 1] = '{' + parts[i + 1];
+              }
+
+              print(parts);
+
+              for(var m in parts){
+                final message = jsonDecode(m);
+
+                final type = message['type'];
+                if(type == 'start_notify'){
+                  ClientController.to.started.value = true;
+                }
+                if(type == 'set_index'){
+                  index = message['data']['index'];
+                  print("received index");
+                }
+                if(type == 'card_data'){
+                  cardData = message['data'];
+                  // gameData.refresh();
+                  print("received card data");
+                }
+                if(type == 'game_view'){
+                  gameData.value = SharingGameData.fromJson(message);
+                  gameData.refresh();
+                  print("received game view data");
+                }
+                if(type == 'secret_view'){
+                  secretGameData.value = SecretGameData.fromJson(message);
+                  secretGameData.refresh();
+                  print("received secret game view data");
+                }
+                //
+                // if (type == 'request_input') {
+                //   print('Server: ${message['message']}');
+                //
+                //   // 플레이어의 입력을 받음 (콘솔에서 입력받는 예시)
+                //   print('Enter your guess (1-6):');
+                //   int guessedNumber = int.parse(stdin.readLineSync()!);
+                //
+                //   // 입력을 서버에 전송
+                //   final playerInput = {
+                //     'type': 'player_input',
+                //     'player_id': 'player1',
+                //     'guess': guessedNumber
+                //   };
+                //   socket.write(jsonEncode(playerInput));
+                // } else if (type == 'game_result') {
+                //   print('Server: ${message['message']}');
+                // }
+              }
+
+
         },
         onDone: () {
           print('Server disconnected');
