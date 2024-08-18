@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:molthar/gamePage.dart';
 import 'package:molthar/hostPage.dart';
+import 'package:molthar/sysClasses.dart';
 import 'package:molthar/utils.dart';
 
 class SecretGameData {
@@ -159,6 +160,7 @@ class ClientController extends GetxController{
   var selectedMaterials = <int>[].obs;
   var selectedCrystals = 0.obs;
 
+
   Socket? socket;
 
   // var hostPage = HostPage().obs;
@@ -232,6 +234,7 @@ class ClientController extends GetxController{
                 if(type == 'start_notify'){
                   ClientController.to.started.value = true;
                   if(GameServerController.to.started == false){
+                    Game().init();
                     Get.toNamed('/game');
                   }
                 }

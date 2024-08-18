@@ -4,6 +4,7 @@ import 'dart:math';
 // import 'package:flutter/material.dart';
 import 'package:molthar/acts.dart';
 import 'package:molthar/gamePage.dart';
+import 'package:molthar/hostPage.dart';
 import 'costDef.dart';
 
 //히스토리 기록시, Act의 run이 History를 리턴하게
@@ -43,12 +44,565 @@ class Game{
 
 
   void init(){
+    print("init");
+
+    characterDeck.cards = [
+      CharacterCard(
+          character: Character(
+              costs: [
+                Cost(mats: [2])
+              ],
+              score: 0,
+              crystal: 1,
+              act: AddSpecialPassive(id: "2toCrystal")
+          )
+      ),
+      CharacterCard(
+          character: Character(
+              costs: [
+                Cost(mats: [3,3,3])
+              ],
+              score: 1,
+              // crystal: 1,
+              act: AddSpecialPassive(id: "3toAny")
+          )
+      ),
+      CharacterCard(
+          character: Character(
+              costs: [
+                Cost(mats: [3,3,3]),
+                Cost(mats: [6,6,6])
+              ],
+              score: 3,
+              // crystal: 1,
+              canMadeNext: true
+          )
+      ),
+      CharacterCard(
+          character: Character(
+              costs: [
+                Cost(mats: [4,4,4]),
+                Cost(mats: [5,5,5])
+              ],
+              score: 3,
+              // crystal: 1,
+              canMadeNext: true
+          )
+      ),
+      CharacterCard(
+          character: Character(
+              costs: [
+                Cost(mats: [1,3,5,7])
+              ],
+              score: 2,
+              // crystal: 1,
+              act: AddInstantMove(amount: 3)
+          )
+      ),
+      CharacterCard(
+          character: Character(
+              costs: [
+                Cost(mats: [2,4,6,8])
+              ],
+              score: 2,
+              // crystal: 1,
+              act: AddInstantMove(amount: 3)
+          )
+      ),
+
+      CharacterCard(
+          character: Character(
+              costs: [
+                Cost(mats: [4,5,6,7,8])
+              ],
+              score: 1,
+              // crystal: 1,
+              act: AddMove(amount: 1)
+          )
+      ),
+
+      CharacterCard(
+          character: Character(
+              costs: [
+                Cost(mats: [1,2,3,4])
+              ],
+              score: 1,
+              crystal: 2,
+              // crystal: 1,
+              // act: AddMove(amount: 1)
+          )
+      ),
+      CharacterCard(
+          character: Character(
+            costs: [
+              Cost(mats: [1,1,1,1])
+            ],
+            score: 0,
+            // crystal: 2,
+            // crystal: 1,
+            act: AddToAlways(mat: 0) //mat 0 is joker
+          )
+      ),
+      CharacterCard(
+          character: Character(
+            costs: [
+              Cost(mats: [8,8])
+            ],
+            score: 2,
+            // crystal: 2,
+            // crystal: 1,
+            // act: AddMove(amount: 1)
+          )
+      ),
+      CharacterCard(
+          character: Character(
+            costs: [
+              Cost(mats: [8,8])
+            ],
+            score: 2,
+            // crystal: 2,
+            // crystal: 1,
+            // act: AddMove(amount: 1)
+          )
+      ),
+      CharacterCard(
+          character: Character(
+            costs: [
+              Cost(mats: [6,6,8,8])
+            ],
+            score: 3,
+            // crystal: 2,
+            // crystal: 1,
+            // act: AddMove(amount: 1)
+          )
+      ),
+      CharacterCard(
+          character: Character(
+            costs: [
+              Cost(mats: [6,6,8,8])
+            ],
+            score: 3,
+            // crystal: 2,
+            // crystal: 1,
+            // act: AddMove(amount: 1)
+          )
+      ),
+      CharacterCard(
+          character: Character(
+            costs: [
+              Cost(mats: [6,6,8,8])
+            ],
+            score: 3,
+            // crystal: 2,
+            // crystal: 1,
+            // act: AddMove(amount: 1)
+          )
+      ),
+
+      CharacterCard(
+          character: Character(
+            costs: sum3to7,
+            score: 1,
+            act: SetRequestedAct(act: KillOthersSelect())
+            // crystal: 2,
+            // crystal: 1,
+            // act: AddMove(amount: 1)
+          )
+      ),
+      CharacterCard(
+          character: Character(
+              costs: sum3to7,
+              score: 1,
+              act: SetRequestedAct(act: KillOthersSelect())
+            // crystal: 2,
+            // crystal: 1,
+            // act: AddMove(amount: 1)
+          )
+      ),
+
+      CharacterCard(
+          character: Character(
+              costs: [Cost(mats: [1,1])],
+              score: 1,
+              act: AddToAlways(mat: 1)
+            // crystal: 2,
+            // crystal: 1,
+            // act: AddMove(amount: 1)
+          )
+      ),
+      CharacterCard(
+          character: Character(
+              costs: [Cost(mats: [2,2])],
+              score: 1,
+              act: AddToAlways(mat: 2)
+            // crystal: 2,
+            // crystal: 1,
+            // act: AddMove(amount: 1)
+          )
+      ),
+      CharacterCard(
+          character: Character(
+              costs: [Cost(mats: [3,3])],
+              score: 1,
+              act: AddToAlways(mat: 3)
+            // crystal: 2,
+            // crystal: 1,
+            // act: AddMove(amount: 1)
+          )
+      ),
+      CharacterCard(
+          character: Character(
+              costs: [Cost(mats: [4,4])],
+              score: 1,
+              act: AddToAlways(mat: 4)
+            // crystal: 2,
+            // crystal: 1,
+            // act: AddMove(amount: 1)
+          )
+      ),
+      CharacterCard(
+          character: Character(
+              costs: [Cost(mats: [5,5])],
+              score: 1,
+              act: AddToAlways(mat: 5)
+            // crystal: 2,
+            // crystal: 1,
+            // act: AddMove(amount: 1)
+          )
+      ),
+      CharacterCard(
+          character: Character(
+              costs: [Cost(mats: [6,6])],
+              score: 1,
+              act: AddToAlways(mat: 6)
+            // crystal: 2,
+            // crystal: 1,
+            // act: AddMove(amount: 1)
+          )
+      ),
+      CharacterCard(
+          character: Character(
+              costs: [Cost(mats: [7,7])],
+              score: 1,
+              act: AddToAlways(mat: 7)
+            // crystal: 2,
+            // crystal: 1,
+            // act: AddMove(amount: 1)
+          )
+      ),
+      CharacterCard(
+          character: Character(
+              costs: [Cost(mats: [1,2])],
+              score: 0,
+              act: AddToAlways(mat: 8)
+            // crystal: 2,
+            // crystal: 1,
+            // act: AddMove(amount: 1)
+          )
+      ),
+      CharacterCard(
+          character: Character(
+              costs: [Cost(mats: [1,2])],
+              score: 0,
+              act: AddToAlways(mat: 8)
+            // crystal: 2,
+            // crystal: 1,
+            // act: AddMove(amount: 1)
+          )
+      ),
+      CharacterCard(
+          character: Character(
+            costs: [
+              Cost(mats: [7,7,8,8])
+            ],
+            score: 3
+              ,
+            crystal: 1
+            // crystal: 2,
+            // crystal: 1,
+            // act: AddMove(amount: 1)
+          )
+      ),
+      CharacterCard(
+          character: Character(
+              costs: [
+                Cost(mats: [7,7,8,8])
+              ],
+              score: 3
+              ,
+              crystal: 1
+            // crystal: 2,
+            // crystal: 1,
+            // act: AddMove(amount: 1)
+          )
+      ),
+      CharacterCard(
+          character: Character(
+              costs: [
+                Cost(mats: [7,7,7,7])
+              ],
+              score: 4
+              ,
+              // crystal: 1
+            // crystal: 2,
+            // crystal: 1,
+            // act: AddMove(amount: 1)
+          )
+      ),
+      CharacterCard(
+          character: Character(
+            costs: [
+              Cost(mats: [7,7,7,7])
+            ],
+            score: 4
+            ,
+            // crystal: 1
+            // crystal: 2,
+            // crystal: 1,
+            // act: AddMove(amount: 1)
+          )
+      ),
+      CharacterCard(
+          character: Character(
+            costs: [
+              Cost(mats: [8,8,8,8])
+            ],
+            score: 5
+            ,
+            // crystal: 1
+            // crystal: 2,
+            // crystal: 1,
+            // act: AddMove(amount: 1)
+          )
+      ),
+      CharacterCard(
+          character: Character(
+            costs: [
+              Cost(mats: [2,2,2], crystal: 1)
+            ],
+            score: 3
+          )
+      ),
+      CharacterCard(
+          character: Character(
+              costs: [
+                Cost(mats: [3,5,7])
+              ],
+              crystal: 1,
+              score: 1,
+            act: AddSpecialPassive(id: "reverseCrystal")
+          )
+      ),
+      CharacterCard(
+          character: Character(
+              costs: n123,
+              // crystal: 1,
+              score: 1,
+              act: AddSpecialPassive(id: "seeTopCard")
+          )
+      ),
+      CharacterCard(
+          character: Character(
+              costs: n12345,
+              // crystal: 1,
+              score: 2,
+              act: AddSpecialPassive(id: "swapGate")
+          )
+      ),
+      CharacterCard(
+          character: Character(
+              costs: [Cost(mats: [1,8])],
+              // crystal: 1,
+              score: 1,
+              act: AddSpecialPassive(id: "swapHand")
+          )
+      ),
+      CharacterCard(
+          character: Character(
+              costs: same22,
+              // crystal: 1,
+              score: 2,
+              act: AddInstantMoveToNext(amount: 1)
+          )
+      ),
+      CharacterCard(
+          character: Character(
+              costs: same2And66,
+              // crystal: 1,
+              score: 2,
+              crystal: 1
+              // act: AddInstantMoveToNext(amount: 1)
+          )
+      ),
+      CharacterCard(
+          character: Character(
+              costs: same2And66,
+              // crystal: 1,
+              score: 2,
+              crystal: 1
+            // act: AddInstantMoveToNext(amount: 1)
+          )
+      ),
+      CharacterCard(
+          character: Character(
+              costs: same4,
+              // crystal: 1,
+              score: 3,
+              // crystal: 1
+            // act: AddInstantMoveToNext(amount: 1)
+          )
+      ),
+      CharacterCard(
+          character: Character(
+            costs: [Cost(mats: [5,6,7])],
+            // crystal: 1,
+            score: 1,
+            act: SetRequestedAct(act: SeeOthersSelect())
+            // crystal: 1
+            // act: AddInstantMoveToNext(amount: 1)
+          )
+      ),
+      CharacterCard(
+          character: Character(
+              costs: [Cost(mats: [5,6,7])],
+              // crystal: 1,
+              score: 1,
+              act: SetRequestedAct(act: SeeOthersSelect())
+            // crystal: 1
+            // act: AddInstantMoveToNext(amount: 1)
+          )
+      ),
+      CharacterCard(
+          character: Character(
+              costs: [Cost(mats: [3,4,5])],
+              // crystal: 1,
+              score: 1,
+              act: SetRequestedAct(act: GetOneFromUsed3Select())
+            // crystal: 1
+            // act: AddInstantMoveToNext(amount: 1)
+          )
+      ),
+      CharacterCard(
+          character: Character(
+              costs: same3,
+              // crystal: 1,
+              score: 2,
+              // act: SetRequestedAct(act: GetOneFromUsed3Select())
+            // crystal: 1
+            // act: AddInstantMoveToNext(amount: 1)
+          )
+      ),
+      CharacterCard(
+          character: Character(
+            costs: same3,
+            // crystal: 1,
+            score: 2,
+            // act: SetRequestedAct(act: GetOneFromUsed3Select())
+            // crystal: 1
+            // act: AddInstantMoveToNext(amount: 1)
+          )
+      ),
+      CharacterCard(
+          character: Character(
+            costs: same2,
+            // crystal: 1,
+            score: 1,
+            // act: SetRequestedAct(act: GetOneFromUsed3Select())
+            // crystal: 1
+            // act: AddInstantMoveToNext(amount: 1)
+          )
+      ),
+      CharacterCard(
+          character: Character(
+            costs: same2,
+            // crystal: 1,
+            score: 1,
+            // act: SetRequestedAct(act: GetOneFromUsed3Select())
+            // crystal: 1
+            // act: AddInstantMoveToNext(amount: 1)
+          )
+      ),
+      CharacterCard(
+          character: Character(
+            costs: same2,
+            // crystal: 1,
+            score: 1,
+            // act: SetRequestedAct(act: GetOneFromUsed3Select())
+            // crystal: 1
+            // act: AddInstantMoveToNext(amount: 1)
+          )
+      ),
+      CharacterCard(
+          character: Character(
+            costs: sumnto10,
+            // crystal: 1,
+            score: 1,
+            act: AddSpecialPassive(id: "extraHand")
+            // act: SetRequestedAct(act: GetOneFromUsed3Select())
+            // crystal: 1
+            // act: AddInstantMoveToNext(amount: 1)
+          )
+      ),
+      CharacterCard(
+          character: Character(
+              costs: sum3to20,
+              // crystal: 1,
+              score: 2,
+              // act: AddSpecialPassive(id: "extraHand")
+            // act: SetRequestedAct(act: GetOneFromUsed3Select())
+            // crystal: 1
+            // act: AddInstantMoveToNext(amount: 1)
+          )
+      ),
+      CharacterCard(
+          character: Character(
+            costs: sum3to10,
+            // crystal: 1,
+            score: 1,
+            act: AddSpecialPassive(id: "1to8")
+            // act: SetRequestedAct(act: GetOneFromUsed3Select())
+            // crystal: 1
+            // act: AddInstantMoveToNext(amount: 1)
+          )
+      ),
+      CharacterCard(
+          character: Character(
+              costs: odd3,
+              // crystal: 1,
+              score: 1,
+              crystal: 1
+              // act: AddSpecialPassive(id: "1to8")
+            // act: SetRequestedAct(act: GetOneFromUsed3Select())
+            // crystal: 1
+            // act: AddInstantMoveToNext(amount: 1)
+          )
+      ),
+      CharacterCard(
+          character: Character(
+              costs: even3,
+              // crystal: 1,
+              score: 1,
+              crystal: 1
+            // act: AddSpecialPassive(id: "1to8")
+            // act: SetRequestedAct(act: GetOneFromUsed3Select())
+            // crystal: 1
+            // act: AddInstantMoveToNext(amount: 1)
+          )
+      ),
+
+
+
+    ];
+
+    characterDeck.cards.shuffle(Random());
+    characterDeck.resetField(this);
 
     for(int i = 1; i <= 8; i++){
       for(int l = 0; l < 7; l++){
         matDeck.cards.add(ResourceCard(mat: i, resetCharacterField: (i==4||i==3||i==5) && l==0));
       }
     }
+    print(matDeck.cards);
     matDeck.cards.shuffle(Random());
     matDeck.resetField(this);
 
@@ -59,57 +613,7 @@ class Game{
     //     act: ResetMatField()
     //   )));
     // }
-    characterDeck.cards = [
-      CharacterCard(
-        character: Character(
-          costs: [
-            Cost(mats: [1,1])
-          ],
-          score: 2,
-          act: AddToAlways(mat: 1)
-        )
-      ),
-      CharacterCard(
-          character: Character(
-              costs: [
-                Cost(mats: [1,1])
-              ],
-              score: 1,
-              act: AddToAlways(mat: 1)
-          )
-      ),
-      CharacterCard(
-          character: Character(
-              costs: [
-                Cost(mats: [1,1])
-              ],
-              score: 3,
-              act: AddToAlways(mat: 1)
-          )
-      ),
-      CharacterCard(
-          character: Character(
-              costs: [
-                Cost(mats: [1,1])
-              ],
-              score: 4,
-              act: AddToAlways(mat: 1)
-          )
-      ),
-      CharacterCard(
-          character: Character(
-              costs: [
-                Cost(mats: [1,1])
-              ],
-              score: 5,
-              act: AddToAlways(mat: 1)
-          )
-      ),
 
-    ];
-
-    characterDeck.cards.shuffle(Random());
-    characterDeck.resetField(this);
 
     // for(int i = 0; i < 2; i++){
     //   players.add(Player(game: this));
@@ -334,6 +838,7 @@ class Deck<T extends Card> {
     if (cards.isEmpty) {
       restore();
     }
+    print("${T.runtimeType.toString()}------------------------${cards.length}:${used.length}");
     return cards.removeAt(0);
   }
 
@@ -376,6 +881,7 @@ class Player{
 
   int remainTurn = 0;
   int maxTurn = 3;
+  int instantTurn = 0;
 
   // List<Card> selectedCards = [];
   int selectedCrystals = 0;
@@ -384,7 +890,11 @@ class Player{
 
   // List<Widget> autoActs = []; //-----------------------------------------------------------
   List<Act> activeActs = [];
+  List<Act> requestedAct = [];
+
+
   List<Act> specialActs = [];
+  List<String> specialPassives = [];
 
   // int selectedGateIndex = 0;
   // int selectedFieldIndex = 0;
@@ -404,6 +914,10 @@ class Player{
 
   // void SelectMatWithIndex(int index){
   //   hand.mats[index].selected = !hand.mats[index].selected;
+  // }
+  //
+  // void SetOnlyActiveActs(List<Act> acts){
+  //   activeActs = acts;
   // }
 
 
@@ -437,6 +951,12 @@ class Player{
   List<Act> setAvailableActs(){
     if(remainTurn<1){
       return [];
+    }
+
+    if(requestedAct.length > 0){
+      var temp = requestedAct.toList();
+      requestedAct.clear();
+      return temp;
     }
     List<Act> acts = [];
     acts.add(GetMatFromDeck());
@@ -501,12 +1021,15 @@ class Character{
   int crystal;
   Act? act;
   int score;
+  bool canMadeNext; // 요정카드인 경우 양 옆의 사람도 메이드 가능하게
+
   Character({
     required this.costs,
     required this.score,
 
     this.crystal = 0,
     this.act,
+    this.canMadeNext = false
   });
 }
 

@@ -442,27 +442,27 @@ class ResetCharacterField extends Act {
   }
 }
 
-class UseCrystal extends Act {
-  @override
-  ActResult run(Game game, Player? player, Player? target, Map<String, dynamic> parameters) {
-    if (player!.crystal > 0) {
-      player.crystal -= 1;
-      player.selectedCrystals += 1;
-    }
-    return ActResult();
-  }
-}
-
-class UnUseCrystal extends Act {
-  @override
-  ActResult run(Game game, Player? player, Player? target, Map<String, dynamic> parameters) {
-    if (player!.selectedCrystals > 0) {
-      player.selectedCrystals -= 1;
-      player.crystal += 1;
-    }
-    return ActResult();
-  }
-}
+// class UseCrystal extends Act {
+//   @override
+//   ActResult run(Game game, Player? player, Player? target, Map<String, dynamic> parameters) {
+//     if (player!.crystal > 0) {
+//       player.crystal -= 1;
+//       player.selectedCrystals += 1;
+//     }
+//     return ActResult();
+//   }
+// }
+//
+// class UnUseCrystal extends Act {
+//   @override
+//   ActResult run(Game game, Player? player, Player? target, Map<String, dynamic> parameters) {
+//     if (player!.selectedCrystals > 0) {
+//       player.selectedCrystals -= 1;
+//       player.crystal += 1;
+//     }
+//     return ActResult();
+//   }
+// }
 
 // class SeeOthersSelectMenu extends Act {
 //   @override
@@ -559,7 +559,81 @@ class AddToAlways extends Act {
   @override
   ActResult run(Game game, Player? player, Player? target, Map<String, dynamic> parameters) {
     // int mat = parameters['mat'];
+    if(mat==0){
+      for(int i = 1; i < 9; i++){
+        player!.always.add(i);
+      }
+      return ActResult();
+    }
     player!.always.add(mat);
+    return ActResult();
+  }
+}
+
+
+
+
+class AddSpecialPassive extends Act {
+  String id;
+
+  AddSpecialPassive({required this.id});
+
+  @override
+  ActResult run(Game game, Player? player, Player? target, Map<String, dynamic> parameters) {
+    // int mat = parameters['mat'];
+    player!.specialPassives.add(id);
+    return ActResult();
+  }
+}
+
+class AddInstantMove extends Act {
+  int amount;
+
+  AddInstantMove({required this.amount});
+
+  @override
+  ActResult run(Game game, Player? player, Player? target, Map<String, dynamic> parameters) {
+    // int mat = parameters['mat'];
+    player!.instantTurn += amount;
+    return ActResult();
+  }
+}
+
+class AddInstantMoveToNext extends Act {
+  int amount;
+
+  AddInstantMoveToNext({required this.amount});
+
+  @override
+  ActResult run(Game game, Player? player, Player? target, Map<String, dynamic> parameters) {
+    // int mat = parameters['mat'];
+    game.players[(game.players.indexOf(player!)+1)%game.players.length].instantTurn += amount;
+    return ActResult();
+  }
+}
+
+class AddMove extends Act {
+  int amount;
+
+  AddMove({required this.amount});
+
+  @override
+  ActResult run(Game game, Player? player, Player? target, Map<String, dynamic> parameters) {
+    // int mat = parameters['mat'];
+    player!.maxTurn += amount;
+    return ActResult();
+  }
+}
+
+class SetRequestedAct extends Act {
+  Act act;
+
+  SetRequestedAct({required this.act});
+
+  @override
+  ActResult run(Game game, Player? player, Player? target, Map<String, dynamic> parameters) {
+    // int mat = parameters['mat'];
+    player!.requestedAct.add(act);
     return ActResult();
   }
 }

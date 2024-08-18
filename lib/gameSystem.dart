@@ -97,15 +97,19 @@ class GameSystem {
 
   Future<void> playEachTurn() async {
     var currentPlayer = getCurrentPlayer();
-    currentPlayer.remainTurn = currentPlayer.maxTurn;
-    for(; currentPlayer.remainTurn > 0;){
+    currentPlayer.remainTurn = currentPlayer.maxTurn + currentPlayer.instantTurn;
+    currentPlayer.instantTurn = 0;
+
+    shareGameData();
+    await server.shootMessages();
+
+    for(; currentPlayer.remainTurn > 0 || currentPlayer.requestedAct.length>0;){
       currentPlayer.setAvailableActs();
       // for(var player in game.players){
       //   await sendToPlayer(player, {'cards':Card.allCards}, 'card_data');
       // }
       // await Future.delayed(Duration(milliseconds: 100));
 
-      await shareGameData();
 
       print("currentPlayer: ${currentPlayer.uid}");
       // await Future.delayed(Duration(milliseconds: 100));
@@ -113,8 +117,8 @@ class GameSystem {
       // print("getinput");
       handleInput(input, currentPlayer);
 
-      await shareGameData();
-      server.shootMessages();
+      shareGameData();
+      await server.shootMessages();
 
       // print('remainTurn: ${currentPlayer.remainTurn}');
 
@@ -129,16 +133,18 @@ class GameSystem {
   }
 
   Future<void> startGame() async {
+    print('game start');
     game.init();
     for(var player in game.players){
       sendToPlayer(player, {}, 'start_notify');
     }
 
+
     while (true) {
       var currentPlayer = getCurrentPlayer();
 
       await playEachTurn();
-      await shareGameData();
+      game.turnIndex = (game.turnIndex + 1) % game.players.length;
 
     }
   }

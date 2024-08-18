@@ -174,6 +174,8 @@ class GameServer {
   }
 
   Future<void> shootMessages() async {
+    // print(messages.keys);
+    // print(messages.values);
     for(var playerId in messages.keys){
       final socket = connectedClients.value[playerId];
       if (socket == null) {
@@ -182,7 +184,10 @@ class GameServer {
       }
 
       try {
+        print("${playerId} : "+messages[playerId]!);
         final encodedMessage = utf8.encode(messages[playerId]!);
+        // print("a is: "+encodedMessage);
+        // socket.write(Stream.fromIterable([encodedMessage]));
         await socket.addStream(Stream.fromIterable([encodedMessage]));
         messages[playerId] = '';
       } catch (e) {
